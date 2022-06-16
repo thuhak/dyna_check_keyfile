@@ -28,10 +28,9 @@ python3.6 -m pip install -r requirements.txt
 ### 批量搜索当前目录之下所有的keyfile是否有更新
 
 ```bash
-find -name '*.key' | xargs ./check_keyfile
+find -name '*.key' | xargs ./check_keyfile.py
 ```
 
 ## 其他注意事项
 
 - 需要避免keyfile出现文件名字相同，但是目录不一样的情况，否则会一起替换
-- 
