@@ -13,24 +13,25 @@ python3.6 -m pip install -r requirements.txt
 
 ## 使用举例
 
-### 检查文件是否有更新
+### 检查文件是否有更新，如果有更新会提示是否更新
 
 ```bash
 ./check_keyfile.py test_run_001.key
 ```
 
-### 检查并更新keyfile
+### 只检查keyfile，不提示，直接更新
 
 ```bash
-./check_keyfile.py --update test_run_001.key
+./check_keyfile.py  test_run_001.key --u yes
 ```
 
-### 批量搜索当前目录之下所有的keyfile是否有更新
+### 批量搜索当前目录之下所有的keyfile是否有更新，不直接更新
 
 ```bash
-find -name '*.key' | xargs ./check_keyfile.py
+find -name '*.key' | xargs ./check_keyfile.py -u no
 ```
 
 ## 其他注意事项
 
 - 需要避免keyfile出现文件名字相同，但是目录不一样的情况，否则会一起替换
+- 对INCLUDE和INCLUDE_PATH的识别暂不支持换行

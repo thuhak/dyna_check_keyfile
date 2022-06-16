@@ -92,13 +92,16 @@ def keyfile_parser(text):
 if __name__ == '__main__':
     parser = ArgumentParser('parse LS-dyna .key file')
     parser.add_argument('-l', '--log_level', choices=['debug', 'info', 'error'], default='info', help='logging level')
-    parser.add_argument('--update', action='store_true', help='update to the latest version')
+    parser.add_argument('-u', '--update', choices=['yes', 'no', 'auto'], default='auto',
+                        help='update to the latest version')
     parser.add_argument('keyfile', nargs='+', help='path of key files')
     args = parser.parse_args()
     log_level = getattr(logging, args.log_level.upper())
     logging.basicConfig(level=log_level, format='[%(levelname)s]%(message)s')
+    yes = lambda answer: answer[0].upper() == 'Y'
 
     for keyfile in args.keyfile:
+        need_update = False
         keyword_processor = KeywordProcessor()
         try:
             with open(keyfile) as f:
@@ -111,10 +114,13 @@ if __name__ == '__main__':
             k_file.search_siblings()
             latest_verion = k_file.latest_version
             if k_file is not latest_verion:
-                logging.info(f'[NEW VERSION]{keyfile}: {k_file} -> {latest_verion}')
+                need_update = True
+                logging.info(f'[NEW VERSION] {keyfile}: {k_file} -> {latest_verion}')
                 keyword_processor.add_keyword(k_file.name, latest_verion.name)
-        if args.update:
-            logging.info(f'updating {keyfile}')
-            new_text = keyword_processor.replace_keywords(text)
-            with open(keyfile, 'w') as f:
-                f.write(new_text)
+        if need_update:
+            update = yes(input(f'Need update {keyfile}?(Y/N):')) if args.update == 'auto' else yes(args.update)
+            if update:
+                logging.info(f'updating {keyfile}')
+                new_text = keyword_processor.replace_keywords(text)
+                with open(keyfile, 'w') as f:
+                    f.write(new_text)
