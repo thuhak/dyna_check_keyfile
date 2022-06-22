@@ -1,1 +1,2 @@
 flashtext==2.7
+coloredlogs==15.0.1

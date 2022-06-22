@@ -9,6 +9,7 @@ from collections import defaultdict
 from weakref import WeakValueDictionary
 from functools import total_ordering
 
+import coloredlogs
 from flashtext import KeywordProcessor
 
 KEY_FILE = re.compile(r'(.*)_(\d+)\.((?:k|i)(?:\.asc)?)$')
@@ -82,11 +83,14 @@ def keyfile_parser(text):
                 if k == 'include_path' and not os.path.isdir(v):
                     continue
                 data[k].append(v)
-    for base_path in data.get('include_path', []):
-        for k in data.get('include_file', []):
+    for k in data.get('include_file', []):
+        for base_path in data.get('include_path', []):
             k_file = os.path.join(base_path, k)
             if os.path.isfile(k_file):
                 yield k_file
+                break
+        else:
+            logging.critical(f"{k} does not exist")
 
 
 if __name__ == '__main__':
@@ -96,8 +100,7 @@ if __name__ == '__main__':
                         help='update to the latest version')
     parser.add_argument('keyfile', nargs='+', help='path of key files')
     args = parser.parse_args()
-    log_level = getattr(logging, args.log_level.upper())
-    logging.basicConfig(level=log_level, format='[%(levelname)s]%(message)s')
+    coloredlogs.install(level=args.log_level.upper(), fmt="[%(levelname)s]%(message)s")
     yes = lambda answer: answer[0].upper() == 'Y'
 
     for keyfile in args.keyfile:
