@@ -34,4 +34,3 @@ find -name '*.key' | xargs ./check_keyfile.py -u no
 ## 其他注意事项
 
 - 需要避免keyfile出现文件名字相同，但是目录不一样的情况，否则会一起替换
-- 对INCLUDE和INCLUDE_PATH的识别暂不支持换行

@@ -12,9 +12,10 @@ from functools import total_ordering
 import coloredlogs
 from flashtext import KeywordProcessor
 
-KEY_FILE = re.compile(r'(.*)_(\d+)\.((?:k|i)(?:\.asc)?)$')
+KEY_FILE = re.compile(r'(.*?)((?:\d+[._-])*\d+)\.(.+)$')
 INCLUDE_PATH = r'^\*INCLUDE_PATH\n(?P<include_path>.*)'
-INCLUDE_FILE = r'^\*INCLUDE\n(?P<include_file>.*)'
+INCLUDE_FILE = r'^\*INCLUDE(_TRANSFORM)?\n(?P<include_file>.*)'
+FIX_LINE = re.compile(r'\s+\+\n', flags=re.MULTILINE)
 MASTER_PAT = re.compile('|'.join([INCLUDE_PATH, INCLUDE_FILE]), flags=re.MULTILINE)
 
 
@@ -33,6 +34,35 @@ class FlyWeight:
         return instance
 
 
+@total_ordering
+class Version:
+    def __init__(self, v):
+        versions = [v] if type(v) is int else re.findall(r'\d+', v)
+        self.versions = [int(n) for n in versions] if versions else [0]
+        self.len = len(self.versions)
+
+    def __eq__(self, other):
+        for i, n in enumerate(self.versions):
+            try:
+                if n != other.versions[i]:
+                    return False
+            except IndexError:
+                return False
+        return True
+
+    def __gt__(self, other):
+        for i, n in enumerate(self.versions):
+            try:
+                oversion = other.versions[i]
+                if n < oversion:
+                    return False
+                if n > oversion:
+                    return True
+            except IndexError:
+                return True
+        return self.len > other.len
+
+
 @FlyWeight
 @total_ordering
 class KFile:
@@ -45,11 +75,11 @@ class KFile:
         m = KEY_FILE.findall(self.name)
         if not m:
             self.pattern = self.name
-            self.num = 0
+            self.version = Version(0)
         else:
             pattern, num, suffix = m[0]
             self.pattern = f'{pattern}|{suffix}'
-            self.num = int(num)
+            self.version = Version(num)
         heapq.heappush(self.pattern_table[self.pattern], self)
 
     @property
@@ -63,10 +93,10 @@ class KFile:
                 KFile(filename)
 
     def __lt__(self, other):
-        return self.num > other.num  # inverse order for minheap
+        return self.version > other.version  # inverse order for minheap
 
     def __eq__(self, other):
-        return self.num == other.num
+        return self.version == other.version
 
     def __str__(self):
         return self.name
@@ -75,16 +105,18 @@ class KFile:
         return self.name
 
 
-def keyfile_parser(text):
-    data = defaultdict(list)
+def keyfile_parser(text, keyfile_dir):
+    include_paths = [keyfile_dir]
+    include_files = []
     for m in MASTER_PAT.finditer(text):
         for k, v in m.groupdict().items():
             if v:
-                if k == 'include_path' and not os.path.isdir(v):
-                    continue
-                data[k].append(v)
-    for k in data.get('include_file', []):
-        for base_path in data.get('include_path', []):
+                if k == 'include_path' and os.path.isdir(v):
+                    include_paths.append(v)
+                elif k == 'include_file':
+                    include_files.append(v)
+    for k in include_files:
+        for base_path in include_paths:
             k_file = os.path.join(base_path, k)
             if os.path.isfile(k_file):
                 yield k_file
@@ -105,6 +137,7 @@ if __name__ == '__main__':
 
     for keyfile in args.keyfile:
         need_update = False
+        keyfile_dir = os.path.dirname(keyfile)
         keyword_processor = KeywordProcessor()
         try:
             with open(keyfile) as f:
@@ -112,7 +145,7 @@ if __name__ == '__main__':
         except:
             logging.error(f'invalid keyfile {keyfile}')
             continue
-        for k in keyfile_parser(text):
+        for k in keyfile_parser(FIX_LINE.sub('', text), keyfile_dir):
             k_file = KFile(k)
             k_file.search_siblings()
             latest_verion = k_file.latest_version
