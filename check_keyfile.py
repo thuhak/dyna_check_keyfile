@@ -15,7 +15,9 @@ from flashtext import KeywordProcessor
 KEY_FILE = re.compile(r'(.*?)((?:\d+[._-])*\d+)\.(.+)$')
 INCLUDE_PATH = r'^\*INCLUDE_PATH\n(?P<include_path>.*)'
 INCLUDE_FILE = r'^\*INCLUDE(_TRANSFORM)?\n(?P<include_file>.*)'
-FIX_LINE = re.compile(r'\s+\+\n', flags=re.MULTILINE)
+MULTI_LINE = r'\s+\+\n'
+DESCRIPTION = r'^\$.*\n'
+FIX_LINE = re.compile('|'.join([MULTI_LINE, DESCRIPTION]), flags=re.MULTILINE)
 MASTER_PAT = re.compile('|'.join([INCLUDE_PATH, INCLUDE_FILE]), flags=re.MULTILINE)
 
 
