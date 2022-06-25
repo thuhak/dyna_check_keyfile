@@ -12,7 +12,7 @@ import shutil
 import coloredlogs
 
 
-INCLUDE_PATH = r'^\*INCLUDE_PATH\n(?P<include_path>.*)'
+INCLUDE_PATH = r'^\*INCLUDE_PATH\n(?P<include_path>.*)\n'
 INCLUDE_FILE = r'(^\*INCLUDE(?:_TRANSFORM)?\n)(?P<include_file>(?:.*/)?(.*))'
 MULTI_LINE = r'\s+\+\n'
 DESCRIPTION = r'^\$.*\n'
