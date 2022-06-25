@@ -128,7 +128,7 @@ def keyfile_parser(text, keyfile_dir):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser('parse LS-dyna .key file')
+    parser = ArgumentParser('check latest version of LS-dyna include files')
     parser.add_argument('-l', '--log_level', choices=['debug', 'info', 'error'], default='info', help='logging level')
     parser.add_argument('-u', '--update', choices=['yes', 'no', 'auto'], default='auto',
                         help='update to the latest version')

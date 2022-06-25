@@ -68,7 +68,7 @@ def export_key(keyfile, outputdir=None, force=False):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser('parse LS-dyna .key file')
+    parser = ArgumentParser('export dyna include files')
     parser.add_argument('-l', '--log_level', choices=['debug', 'info', 'error'], default='info', help='logging level')
     parser.add_argument('-f', '--force', action='store_true', help='continue exporting if some k file was missing')
     parser.add_argument('-o', '--output', help='output dir')
